@@ -1,1 +1,4 @@
 # INST326_Budget
+
+Our project will enable users to create a categorical budget. Using the income, users will be able to list their monthly expenses such as rent and car payments. With the remaining money, users will be able to set budget amounts for other categories such as food, gas, self care, and entertainment. They will be able to insert a categorized list of purchases and the program will tell them when they’ve exceeded their listed budget and their income. Any money left over after budgeting will automatically be moved to a general savings account.
+In regard to savings, users will be able to create different savings accounts in addition to the general account. Any additional savings account will have a goal, and users will be able to choose how much money they want to divert into the account. Once the goal is reached, no more money will be added to the account. Money can also be transferred from account to account. 
