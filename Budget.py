@@ -7,7 +7,7 @@ class Budget:
     Attributes:
     	budget_name (String): the name of the person's budget
     	category (Category): represents a category in the budget
-      income (int): total income that the user can create the budget with
+      	income (int): total income that the user can create the budget with
     Side Effects:
     	Create table in SQL for current user's budget
       Create a list to store budget category objects
