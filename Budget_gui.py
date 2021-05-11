@@ -146,9 +146,8 @@ class PageTwo(tk.Frame):
         label.pack(side=LEFT, padx=10, pady=15)
 
         entry1 = tk.Entry(frame1)
-        #entry1.pack(padx=5, expand=True)
+        entry1.pack(padx=5, expand=True)
 
-        #Create entry box for category max amount
         frame2 = tk.Frame(self, width=100, height=100)
         frame2.pack()
 
@@ -167,11 +166,6 @@ class PageTwo(tk.Frame):
         entry3 = tk.Entry(frame3)
         entry3.pack(padx=5, expand=True)
 
-        frame3 = tk.Frame(self)
-        frame3.pack()
-
-        entry3 = tk.Entry(frame1)
-        entry3.pack(padx=5, expand=True)
 
         #BUTTONS###
         frame4 = tk.Frame(self)
