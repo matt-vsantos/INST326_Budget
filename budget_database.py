@@ -2,6 +2,8 @@ import sqlite3
 import tkinter as tk
 
 def init_database():
+    """Creates the database file and creates the empty 'categories' table
+    """
     conn = sqlite3.connect('budget_tracker.db')
     cursor = conn.cursor()
     cq = "CREATE TABLE IF NOT EXISTS categories (categoryid INTEGER PRIMARY KEY, category_name TEXT, max_amount INTEGER);"
@@ -9,6 +11,10 @@ def init_database():
     conn.close() 
         
 def get_categories():
+    """This method returns a list of all of the categories by querying the database
+    Returns:
+        category_names (list): a list of strings of all the budget's categories
+    """
     conn = sqlite3.connect('budget_tracker.db')
     cursor = conn.cursor()
     sq = '''SELECT category_name FROM categories'''
@@ -42,6 +48,10 @@ def add_category(name, max_amount):
         conn.close()
 
 def del_category(name):
+    """This method removes categories from the 'categories' table and and drops the table that holds its expenses
+    Side Effects:
+        removes a row from database and table from database that represents the parameter's category
+    """
     conn = sqlite3.connect('budget_tracker.db')
     cursor = conn.cursor()
     dq = '''DROP TABLE %s;''' %name
