@@ -21,9 +21,11 @@ class Main(tk.Tk):
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
 
-        self.init_db()  # initializae budget tracker database
-        # initializes dictionary of categories (key: name, values: max_amount)
-        self.categories = dict()
+        conn = sqlite3.connect('budget_tracker.db')  # initializes database
+        cursor = conn.cursor()
+        cq = "CREATE TABLE IF NOT EXISTS categories (categoryid INTEGER PRIMARY KEY, category_name TEXT, max_amount INTEGER);"
+        cursor.execute(cq)
+        conn.close()  # initialize budget tracker database
 
         self.show_frame(StartPage)
 
@@ -33,15 +35,6 @@ class Main(tk.Tk):
     def show_frame(self, cont):
         frame = self.frames[cont]
         frame.tkraise()
-
-    def init_db(self):
-        conn = sqlite3.connect('budget_tracker.db')  # initializes database
-        cursor = conn.cursor()
-        global cq
-        cq = "CREATE TABLE IF NOT EXISTS categories (categoryid INTEGER PRIMARYKEY, category_name TEXT, max_amount INTEGER)"
-        cursor.execute(cq)
-        conn.close()
-
 
 class StartPage(tk.Frame):
     def __init__(self, parent, controller):
@@ -61,7 +54,6 @@ class StartPage(tk.Frame):
         button2 = tk.Button(self, text="View your Categories",
                             command=lambda: controller.show_frame(PageTwo))
         button2.pack()
-
 
 class PageOne(tk.Frame):
     def __init__(self, parent, controller):
@@ -99,39 +91,53 @@ class PageOne(tk.Frame):
                             command=lambda: controller.show_frame(StartPage))
         button1.pack()
 
-        button2 = tk.Button(self, text="View your Categories",
+        button2 = tk.Button(self, text="Edit your Categories",
                             command=lambda: controller.show_frame(PageTwo))
         button2.pack()
 
     def added(self, name, max_amount):
-        """Verifies that the category has been added to user. Adds category to a global dictionary of categories
+        """Verifies that the category has been added to user. Adds category to a global database 'categories' table
         Parameters:
             name (String): name of the category
             max_amount (int): max_amount the user can spend in that category
         """
-        self.controller.categories[name] = {
-            max_amount}  # access categories dictionary from Main
 
+        conn = sqlite3.connect('budget_tracker.db')
+        cursor = conn.cursor()
+        db_tuple = name, max_amount
+        iq = '''INSERT INTO categories(category_name, max_amount) VALUES (?,?)'''
+        cursor.execute(iq,db_tuple)
+        cq = '''CREATE TABLE IF NOT EXISTS {name} (categoryid INTEGER PRIMARY KEY, category_name TEXT, max_amount INTEGER);'''
+        conn.commit()
+        conn.close()
+        
         label = tk.Label(self, text="Category Added")
         label.pack(padx=10, pady=10)
-
 
 class PageTwo(tk.Frame):
     """Allows user to see their categories via a dropdown menu.
     """
-
     def __init__(self, parent, controller):
         self.controller = controller
         tk.Frame.__init__(self, parent)
 
         #Dropdown creation
-        #dp = self.controller.categories.keys()
+        conn = sqlite3.connect('budget_tracker.db')
+        cursor = conn.cursor()
+        sq = '''SELECT category_name FROM categories'''
+        sq_names = cursor.execute(sq).fetchall()
+        conn.close()
+        
+        category_names = list() #following line and loop gets categories from the database and puts them in a list
+        for tup in sq_names:
+            category_names.append(tup[0])
+        
         framex = tk.Frame(self)
         framex.pack()
         clicked = tk.StringVar()        # datatype of menu text
         clicked.set("Category")     # initial menu text
         # Create Dropdown menu
-        drop = tk.OptionMenu(framex, clicked, "groceries")
+        drop = tk.OptionMenu(framex, clicked, category_names)
         drop.pack()
         button = tk.Button(framex, text="Edit Category")
         button.pack()   # Create button,changes label
@@ -148,15 +154,6 @@ class PageTwo(tk.Frame):
         entry1 = tk.Entry(frame1)
         entry1.pack(padx=5, expand=True)
 
-        frame2 = tk.Frame(self, width=100, height=100)
-        frame2.pack()
-
-        label = tk.Label(frame2, text="Date Bought")
-        label.pack(side=LEFT, padx=10, pady=10)
-
-        entry2 = tk.Entry(frame2)
-        entry2.pack(padx=5, expand=True)
-
         frame3 = tk.Frame(self, width=100, height=100)
         frame3.pack()
 
@@ -170,7 +167,8 @@ class PageTwo(tk.Frame):
         #BUTTONS###
         frame4 = tk.Frame(self)
         frame4.pack()
-        B1 = tk.Button(frame4, text="Insert Purchases")
+        B1 = tk.Button(frame4, text="Insert Purchase",
+                       command=lambda: self.added())
         B1.pack()
 
         '''B2 = tk.Button(frame4, text="Select All")
@@ -179,12 +177,20 @@ class PageTwo(tk.Frame):
         B3 = tk.Button(frame4, text="Find value")
         B3.pack()'''
 
-        B4 = tk.Button(frame4, text="Delete expense")
-        B4.pack()
+        #B4 = tk.Button(frame4, text="Delete expense")
+        #B4.pack()
         B5 = tk.Button(frame4, text="Home",
                        command=lambda: controller.show_frame(StartPage))
         B5.pack()
-
+    
+    def added(self):
+        """Verifies that the category has been added to user. Adds category to a global dictionary of categories
+        Parameters:
+            name (String): name of the category
+            max_amount (int): max_amount the user can spend in that category
+        """
+        label = tk.Label(self, text="Expense Added")
+        label.pack(padx=10, pady=10)
     def show(self):
         tk.label.config(text=tk.clicked.get())
 
