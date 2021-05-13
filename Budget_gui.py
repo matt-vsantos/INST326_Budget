@@ -1,3 +1,4 @@
+import budget_database as db
 import sqlite3
 import tkinter as tk
 from PIL import ImageTk, Image
@@ -7,6 +8,8 @@ LARGE_FONT = ("Verdana", 25)
 
 
 class Main(tk.Tk):
+    """This class initializes the GUI and sets up a database file where all budget information will be stored
+    """
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
 
@@ -21,12 +24,9 @@ class Main(tk.Tk):
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
 
-        conn = sqlite3.connect('budget_tracker.db')  # initializes database
-        cursor = conn.cursor()
-        cq = "CREATE TABLE IF NOT EXISTS categories (categoryid INTEGER PRIMARY KEY, category_name TEXT, max_amount INTEGER);"
-        cursor.execute(cq)
-        conn.close()  # initialize budget tracker database
-
+        # initialize budget tracker database
+        db.init_database()
+        
         self.show_frame(StartPage)
 
     def get_page(self, page_class):
@@ -37,6 +37,8 @@ class Main(tk.Tk):
         frame.tkraise()
 
 class StartPage(tk.Frame):
+    """Home page of the user interface. Users can navigate to two PageOne() and PageTwo().
+    """
     def __init__(self, parent, controller):
         self.controller = controller
         tk.Frame.__init__(self, parent)
@@ -46,20 +48,28 @@ class StartPage(tk.Frame):
         label = tk.Label(
             self, text="Add new Categories or Manage your purchases within each category.")
         label.pack(pady=10, padx=10)
-
-        button = tk.Button(self, text="Add a category",
+        
+        #Navigation to 'Add a category page'
+        button = tk.Button(self, text="Add a category", pady=7,
                            command=lambda: controller.show_frame(PageOne))
         button.pack()
 
-        button2 = tk.Button(self, text="View your Categories",
+        #Navigation to 'View and Edit your Categories' page
+        button2 = tk.Button(self, text="View and Edit your Categories", pady=7,
                             command=lambda: controller.show_frame(PageTwo))
         button2.pack()
 
 class PageOne(tk.Frame):
+    """The user can enter the name of the category and it's associated maximum spend. This will add a row into the categories table and create a new table to store that category's expenses
+    """
     def __init__(self, parent, controller):
         self.controller = controller
         tk.Frame.__init__(self, parent)
-
+        
+        #Instructions Label
+        label = tk.Label(
+            self, text="Enter the category and the maximum amount you can spend (FORMAT EXAMPLE:  \"300.00\")")
+        label.pack(pady=5, padx=10)
         #Create entry box for category name
         frame1 = tk.Frame(self)
         frame1.pack()
@@ -83,36 +93,32 @@ class PageOne(tk.Frame):
         frame3 = tk.Frame(self)
         frame3.pack()
 
-        submit = tk.Button(self, text="Submit Category",
-                           command=lambda: self.added(entry1.get(), entry2.get()))
+        submit = tk.Button(self, text="Submit Category", pady=7,
+                           command=lambda: [db.add_category(entry1.get(), entry2.get()), self.cat_added(entry1.get())])
         submit.pack()
 
-        button1 = tk.Button(self, text="Back to Home",
-                            command=lambda: controller.show_frame(StartPage))
-        button1.pack()
-
-        button2 = tk.Button(self, text="Edit your Categories",
+        button2 = tk.Button(self, text="Edit your Categories", pady=7,
                             command=lambda: controller.show_frame(PageTwo))
         button2.pack()
-
-    def added(self, name, max_amount):
-        """Verifies that the category has been added to user. Adds category to a global database 'categories' table
-        Parameters:
-            name (String): name of the category
-            max_amount (int): max_amount the user can spend in that category
-        """
-
-        conn = sqlite3.connect('budget_tracker.db')
-        cursor = conn.cursor()
-        db_tuple = name, max_amount
-        iq = '''INSERT INTO categories(category_name, max_amount) VALUES (?,?)'''
-        cursor.execute(iq,db_tuple)
-        cq = '''CREATE TABLE IF NOT EXISTS {name} (categoryid INTEGER PRIMARY KEY, category_name TEXT, max_amount INTEGER);'''
-        conn.commit()
-        conn.close()
         
-        label = tk.Label(self, text="Category Added")
-        label.pack(padx=10, pady=10)
+        button1 = tk.Button(self, text="Back to Home", pady=7,
+                            command=lambda: controller.show_frame(StartPage))
+        button1.pack()
+        
+    def cat_added(self, name):
+        """Displays that a category has been added for 5 seconds
+        """
+        if name not in db.get_categories():
+            label = tk.Label(self, text="Category Added")
+            label.pack(padx=10, pady=10)
+            label.after(3000, lambda: label.destroy())
+        else:
+            label = tk.Label(self, text="Category Already Exists")
+            label.pack(padx=10, pady=10)
+            label.after(3000, lambda: label.destroy())
+
+
+    
 
 class PageTwo(tk.Frame):
     """Allows user to see their categories via a dropdown menu.
@@ -122,33 +128,35 @@ class PageTwo(tk.Frame):
         tk.Frame.__init__(self, parent)
 
         #Dropdown creation
-        conn = sqlite3.connect('budget_tracker.db')
-        cursor = conn.cursor()
-        sq = '''SELECT category_name FROM categories'''
-        sq_names = cursor.execute(sq).fetchall()
-        conn.close()
-        
-        category_names = list() #following line and loop gets categories from the database and puts them in a list
-        for tup in sq_names:
-            category_names.append(tup[0])
+        category_names = db.get_categories()    #fetch category names from database
+        label = tk.Label(
+            self, text="Select a category from the dropdown list and either choose to edit the expenses in the category OR delete the category")
+        label.pack(pady=10, padx=10)
         
         framex = tk.Frame(self)
         framex.pack()
+        
+        #drop down list of categories
         clicked = tk.StringVar()        # datatype of menu text
-        clicked.set("Category")     # initial menu text
+        clicked.set("Select A Category")     # initial menu text
         # Create Dropdown menu
-        drop = tk.OptionMenu(framex, clicked, category_names)
-        drop.pack()
-        button = tk.Button(framex, text="Edit Category")
+        drop = tk.OptionMenu(framex, clicked, '', *category_names)
+        drop.pack(pady=5)
+        
+        button = tk.Button(framex, text="Edit Category", pady=7)
         button.pack()   # Create button,changes label
-        label = tk.Label(self, text=" ")        # Create Label
-        label.pack(pady=10, padx=10)
+        button1 = tk.Button(self, text="Delete Category", pady=7,
+                            command=lambda: [self.cat_deleted(clicked.get()), db.del_category(clicked.get())])
+        button1.pack()
+        
+        label = tk.Label(self, text="Enter the name of the expense and how much you spent on it (FORMAT EXAMPLE:  \"12.46\")")        # Create Label
+        label.pack(pady=5, padx=10)
 
         #label = tk.Label(self, text="Manage your purchases below", font=LARGE_FONT)
         frame1 = tk.Frame(self, width=100, height=100)
         frame1.pack()
 
-        label = tk.Label(frame1, text="Name of Good")
+        label = tk.Label(frame1, text="Name of Expense")
         label.pack(side=LEFT, padx=10, pady=15)
 
         entry1 = tk.Entry(frame1)
@@ -167,35 +175,31 @@ class PageTwo(tk.Frame):
         #BUTTONS###
         frame4 = tk.Frame(self)
         frame4.pack()
-        B1 = tk.Button(frame4, text="Insert Purchase",
+        B1 = tk.Button(frame4, text="Insert Purchase", pady=7, 
                        command=lambda: self.added())
         B1.pack()
 
-        '''B2 = tk.Button(frame4, text="Select All")
-        B2.pack()
-        
-        B3 = tk.Button(frame4, text="Find value")
-        B3.pack()'''
-
-        #B4 = tk.Button(frame4, text="Delete expense")
-        #B4.pack()
-        B5 = tk.Button(frame4, text="Home",
+        B2 = tk.Button(frame4, text="Home", pady=7,
                        command=lambda: controller.show_frame(StartPage))
-        B5.pack()
-    
+        B2.pack()
+
     def added(self):
-        """Verifies that the category has been added to user. Adds category to a global dictionary of categories
+        """Verifies that the category has been added to user for 5 seconds. Adds category to a global dictionary of categories
         Parameters:
             name (String): name of the category
             max_amount (int): max_amount the user can spend in that category
         """
-        label = tk.Label(self, text="Expense Added")
+        label = tk.Label(self, text="Expense Added", bg = "red")
         label.pack(padx=10, pady=10)
-    def show(self):
-        tk.label.config(text=tk.clicked.get())
+        label.after(3000, lambda: label.destroy())
+        
+    def cat_deleted(self,name):
+        """Displays that a category has been added to user for 5 seconds
+        """
+        label = tk.Label(self, text="Category: %s Deleted" %name)
+        label.pack(padx=10, pady=10)
+        label.after(3000, lambda: label.destroy())
 
-    def add_category_button(self, controller, name):
-        Button1 = tk.Button(self, text=name.upper())
 
 
 app = Main()
