@@ -68,7 +68,7 @@ class PageOne(tk.Frame):
         
         #Instructions Label
         label = tk.Label(
-            self, text="Enter the category and the maximum amount you can spend (FORMAT EXAMPLE:  \"300.00\")")
+            self, text="Enter the category and the maximum amount you can spend (FORMAT EXAMPLE: \"300.00\" or  \"2000\")")
         label.pack(pady=5, padx=10)
         #Create entry box for category name
         frame1 = tk.Frame(self)
@@ -94,7 +94,7 @@ class PageOne(tk.Frame):
         frame3.pack()
 
         submit = tk.Button(self, text="Submit Category", pady=7,
-                           command=lambda: [db.add_category(entry1.get(), entry2.get()), self.cat_added(entry1.get())])
+                           command=lambda: self.cat_added(entry1.get(), entry2.get()))
         submit.pack()
 
         button2 = tk.Button(self, text="Edit your Categories", pady=7,
@@ -104,22 +104,35 @@ class PageOne(tk.Frame):
         button1 = tk.Button(self, text="Back to Home", pady=7,
                             command=lambda: controller.show_frame(StartPage))
         button1.pack()
-        
-    def cat_added(self, name):
-        """Displays that a category has been added for 5 seconds
+            
+    def cat_added(self, name, amount):
+        """Checks if entries are valid. If so, checks if the category being added already exists. Displays that a category has been added for 5 seconds
         """
-        if name not in db.get_categories():
-            label = tk.Label(self, text="Category Added")
+        categories = db.get_categories()
+        valid = self.valid_entry(name, amount)
+        
+        if valid and name not in categories:
+            db.add_category(name, amount)
+            label = tk.Label(self, text="Category Added", bg="green")
             label.pack(padx=10, pady=10)
             label.after(3000, lambda: label.destroy())
+        elif valid and name in categories:
+            label = tk.Label(self, text="Category Already Exists", bg="red")
+            label.pack(padx=10, pady=10)
+            label.after(3000, lambda: label.destroy())
+
+    def valid_entry(self, name, amount):
+        """This method verifies that the name of the category is a valid string and the amount is a valid number
+        """
+        if (name == '' or type(name) != str) and (type(amount) != int or type(amount) != float):
+            label = tk.Label(self, text="Invalid entry", bg="Red")
+            label.pack(padx=10, pady=10)
+            label.after(3000, lambda: label.destroy())
+            return False
         else:
-            label = tk.Label(self, text="Category Already Exists")
-            label.pack(padx=10, pady=10)
-            label.after(3000, lambda: label.destroy())
-
-
-    
-
+            self.cat_added(name, amount)
+            return True
+        
 class PageTwo(tk.Frame):
     """Allows user to see their categories via a dropdown menu.
     """
@@ -143,13 +156,14 @@ class PageTwo(tk.Frame):
         drop = tk.OptionMenu(framex, clicked, '', *category_names)
         drop.pack(pady=5)
         
-        button = tk.Button(framex, text="Edit Category", pady=7)
+        button = tk.Button(
+            framex, text="Edit your Categories", pady=7)
         button.pack()   # Create button,changes label
         button1 = tk.Button(self, text="Delete Category", pady=7,
                             command=lambda: [self.cat_deleted(clicked.get()), db.del_category(clicked.get())])
         button1.pack()
         
-        label = tk.Label(self, text="Enter the name of the expense and how much you spent on it (FORMAT EXAMPLE:  \"12.46\")")        # Create Label
+        label = tk.Label(self, text="Enter the name of the expense and how much you spent on it (FORMAT EXAMPLE:  \"12.46\" or \"20\")" )      # Create Label
         label.pack(pady=5, padx=10)
 
         #label = tk.Label(self, text="Manage your purchases below", font=LARGE_FONT)
@@ -189,14 +203,14 @@ class PageTwo(tk.Frame):
             name (String): name of the category
             max_amount (int): max_amount the user can spend in that category
         """
-        label = tk.Label(self, text="Expense Added", bg = "red")
+        label = tk.Label(self, text="Expense Added", bg = "green")
         label.pack(padx=10, pady=10)
         label.after(3000, lambda: label.destroy())
         
     def cat_deleted(self,name):
         """Displays that a category has been added to user for 5 seconds
         """
-        label = tk.Label(self, text="Category: %s Deleted" %name)
+        label = tk.Label(self, text="Category: %s Deleted" %name, bg="yellow")
         label.pack(padx=10, pady=10)
         label.after(3000, lambda: label.destroy())
 

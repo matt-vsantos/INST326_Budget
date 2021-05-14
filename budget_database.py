@@ -2,11 +2,11 @@ import sqlite3
 import tkinter as tk
 
 def init_database():
-    """Creates the database file and creates the empty 'categories' table
+    """Creates the database file and creates the empty 'categories'A table
     """
     conn = sqlite3.connect('budget_tracker.db')
     cursor = conn.cursor()
-    cq = "CREATE TABLE IF NOT EXISTS categories (categoryid INTEGER PRIMARY KEY, category_name TEXT, max_amount INTEGER);"
+    cq = "CREATE TABLE IF NOT EXISTS categories (categoryid INTEGER PRIMARY KEY NOT NULL, category_name TEXT NOT NULL, max_amount FLOAT NOT NULL);"
     cursor.execute(cq)
     conn.close() 
         
@@ -42,7 +42,7 @@ def add_category(name, max_amount):
         iq = '''INSERT INTO categories(category_name, max_amount) VALUES (?,?)'''
         cursor.execute(iq, db_tuple)
         conn.commit()
-        cq = '''CREATE TABLE IF NOT EXISTS %s (expenseid INTEGER PRIMARY KEY, expense_name TEXT, expense_amount INTEGER);''' %name
+        cq = '''CREATE TABLE IF NOT EXISTS %s (expenseid INTEGER PRIMARY KEY NOT NULL, expense_name TEXT NOT NULL, expense_amount FLOAT NOT NULL);''' %name
         cursor.execute(cq)
         conn.commit()
         conn.close()
@@ -57,6 +57,22 @@ def del_category(name):
     dq = '''DROP TABLE %s;''' %name
     conn.commit()
     drq = '''DELETE FROM categories WHERE category_name = "%s"''' %name
+    cursor.execute(dq)
+    cursor.execute(drq)
+    conn.commit()
+    conn.close()
+
+
+def insert_expense(name):
+    """This method removes categories from the 'categories' table and and drops the table that holds its expenses
+    Side Effects:
+        removes a row from database and table from database that represents the parameter's category
+    """
+    conn = sqlite3.connect('budget_tracker.db')
+    cursor = conn.cursor()
+    dq = '''DROP TABLE %s;''' % name
+    conn.commit()
+    drq = '''DELETE FROM categories WHERE category_name = "%s"''' % name
     cursor.execute(dq)
     cursor.execute(drq)
     conn.commit()
