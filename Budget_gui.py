@@ -125,7 +125,7 @@ class PageOne(tk.Frame):
     def valid_entry(self, name, amount):
         """This method verifies that the name of the category is a valid string and the amount is a valid number
         """
-        try:
+        try: #include numbers in name var
             if (name == '' or name.isalpha()) == False or (int(amount) < 0 or float(amount) < 0):
                 label = tk.Label(self, text="Invalid entry", bg="Red")
                 label.pack(padx=10, pady=10)
@@ -147,15 +147,12 @@ class PageTwo(tk.Frame):
         tk.Frame.__init__(self, parent)
 
         #Dropdown creation
-        category_names = db.get_categories()    #fetch category names from database
         label = tk.Label(
             self, text="Select a category from the dropdown list and either choose to edit the expenses in the category OR delete the category")
         label.pack(pady=10, padx=10)
         
-        framex = tk.Frame(self)
-        framex.pack()
-        
         #drop down list of categories
+<<<<<<< Updated upstream
         clicked = tk.StringVar()        # datatype of menu text
         clicked.set("Select A Category")     # initial menu text
         # Create Dropdown menu
@@ -176,13 +173,17 @@ class PageTwo(tk.Frame):
         # Create Dropdown menu
         drop = tk.OptionMenu(framex, clicked, '', *category_names)
         drop.pack(pady=5)
+=======
+>>>>>>> Stashed changes
         
-        button = tk.Button(
-            framex, text="Edit your Categories", pady=7)
-        button.pack()   # Create button,changes label
-        button1 = tk.Button(self, text="Delete Category", pady=7,
-                            command=lambda: [self.cat_deleted(clicked.get()), db.del_category(clicked.get())])
-        button1.pack()
+        #button = tk.Button(self, text="Select this Category", pady=7, 
+        #                   command= lambda: self.show_cat_status(clicked.get()))
+        #button.pack()
+        button = tk.Button(self, text="Select A Category to Edit", pady=7,
+                           command= lambda: self.dropdown(framex))
+        button.pack()
+        framex = tk.Frame(self)
+        framex.pack()
         
         label = tk.Label(self, text="Enter the name of the expense and how much you spent on it (FORMAT EXAMPLE:  \"12.46\" or \"20\")" )      # Create Label
         label.pack(pady=5, padx=10)
@@ -214,18 +215,51 @@ class PageTwo(tk.Frame):
         B1.pack()
 
         B2 = tk.Button(frame4, text="Home", pady=7,
-                       command=lambda: controller.show_frame(StartPage))
+                       command=lambda: [controller.show_frame(StartPage), drop.destroy(), delete_button.destroy(), spending_button()])
         B2.pack()
+<<<<<<< Updated upstream
         
     def show_cat_status(self, category):
         """Displays the how much has been spent of the maximum spend out of the maximum spend
         """
+=======
+      
+    def dropdown(self, framex):
+        """Populates the Dropdown with most recent categories
+        Returns:
+            clicked (str): the category selected
+        """
+        category_names = db.get_categories()    #fetch category names from database
+        global clicked
+        clicked = tk.StringVar()        # datatype of menu text
+        clicked.set("Select A Category")     # initial menu text
+        # Create Dropdown menu
+        global drop
+        drop = tk.OptionMenu(framex, clicked, 'Select A Category...', *category_names)
+        drop.pack(pady=5)
+        global delete_button
+        delete_button = tk.Button(framex, text="Delete Category", pady=7,
+                            command=lambda: [self.cat_deleted(clicked.get()), db.del_category(clicked.get())])
+        delete_button.pack()
+        global spending_button
+        spending_button = tk.Button(framex, text="See How Much You've Spent", pady=7,
+                            command=lambda: self.show_cat_status(clicked.get()))
+        spending_button.pack()
+                
+    def show_cat_status(self, category):
+        """Displays the how much has been spent of the maximum spend out of the maximum spend
+        """
+        print(category)
+>>>>>>> Stashed changes
         cat_spend = db.get_cat_spend(category)
         label = tk.Label(self, text=('You have spent $', cat_spend[0], ' of $', cat_spend[1], '.'), bg="Yellow")
         label.pack(padx=10, pady=10)
         label.after(3000, lambda: label.destroy())
         
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
     def added(self, category, expense, amount):
         """Adds expense to category expense table. Verifies that the category has been added to user for 5 seconds.
         Parameters:
@@ -234,13 +268,17 @@ class PageTwo(tk.Frame):
             name (String): name of the category
             max_amount (int): max_amount the user can spend in that category
         """
-        clear_text(clear_expense, clear_amount)
-         
+                 
         if self.valid_expense(expense, amount):
             db.insert_expense(category, expense, amount)
             label1 = tk.Label(self, text="Expense Added", bg="green")
             label1.pack(padx=10, pady=10)
+<<<<<<< Updated upstream
             label1.after(3000, lambda: label1.destroy())
+=======
+            label1.after(3000, 
+                         lambda: [label1.destroy(), drop.destroy(), delete_button.destroy(), spending_button()])
+>>>>>>> Stashed changes
             if db.budget_maxed(category, amount):
                 label = tk.Label(self, text="You've exceeded the max amount for this category!", bg="green")
                 label.pack(padx=10, pady=10)
@@ -268,7 +306,8 @@ class PageTwo(tk.Frame):
         """
         label = tk.Label(self, text="Category: %s Deleted" %name, bg="yellow")
         label.pack(padx=10, pady=10)
-        label.after(3000, lambda: label.destroy())
+        label.after(3000, 
+                    lambda: [label.destroy(), drop.destroy(), delete_button.destroy(), spending_button.destroy()])
 
 def clear_text(text1, text2):
         text1.delete(0, tk.END)
