@@ -111,12 +111,12 @@ class PageOne(tk.Frame):
         categories = db.get_categories()
         valid = self.valid_entry(name, amount)
         
-        if valid and name not in categories:
+        if valid and (name not in categories):
             db.add_category(name, amount)
             label = tk.Label(self, text="Category Added", bg="green")
             label.pack(padx=10, pady=10)
             label.after(3000, lambda: label.destroy())
-        elif valid and name in categories:
+        elif valid and (name in categories):
             label = tk.Label(self, text="Category Already Exists", bg="red")
             label.pack(padx=10, pady=10)
             label.after(3000, lambda: label.destroy())
@@ -124,13 +124,12 @@ class PageOne(tk.Frame):
     def valid_entry(self, name, amount):
         """This method verifies that the name of the category is a valid string and the amount is a valid number
         """
-        if (name == '' or type(name) != str) and (type(amount) != int or type(amount) != float):
+        if (name == '' or type(name) != str) or (type(amount) != int or type(amount) != float):
             label = tk.Label(self, text="Invalid entry", bg="Red")
             label.pack(padx=10, pady=10)
             label.after(3000, lambda: label.destroy())
             return False
         else:
-            self.cat_added(name, amount)
             return True
         
 class PageTwo(tk.Frame):
@@ -185,7 +184,6 @@ class PageTwo(tk.Frame):
         entry3 = tk.Entry(frame3)
         entry3.pack(padx=5, expand=True)
 
-
         #BUTTONS###
         frame4 = tk.Frame(self)
         frame4.pack()
@@ -206,6 +204,8 @@ class PageTwo(tk.Frame):
         label = tk.Label(self, text="Expense Added", bg = "green")
         label.pack(padx=10, pady=10)
         label.after(3000, lambda: label.destroy())
+        #ADD INSERTION FUNCTIONALITY - call insert_expense(entry1.get(),entry3.get())
+        
         
     def cat_deleted(self,name):
         """Displays that a category has been added to user for 5 seconds
