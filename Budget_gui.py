@@ -94,7 +94,7 @@ class PageOne(tk.Frame):
         frame3.pack()
 
         submit = tk.Button(self, text="Submit Category", pady=7,
-                           command=lambda: self.cat_added(entry1, entry2, entry1.get(), entry2.get()))
+                           command=lambda: self.cat_added(entry1, entry2))
         submit.pack()
         
         button2 = tk.Button(self, text="Edit your Categories", pady=7,
@@ -102,22 +102,23 @@ class PageOne(tk.Frame):
         button2.pack()
         
         button1 = tk.Button(self, text="Back to Home", pady=7,
-                            command=lambda: controller.show_frame(StartPage))
+                            command=lambda: [clear_text(entry1, entry2), controller.show_frame(StartPage)])
         button1.pack()
     
-    def cat_added(self, clear_name, clear_amount, name, amount):
+    def cat_added(self, name, amount):
         """Checks if entries are valid. If so, checks if the category being added already exists. Displays that a category has been added for 5 seconds
         """
-        clear_text(clear_name, clear_amount)
-        categories = db.get_categories()
-        valid = self.valid_entry(name, amount)
         
-        if valid and (name not in categories):
-            db.add_category(name, amount)
+        categories = db.get_categories()
+        valid = self.valid_entry(name.get(), amount.get())
+        
+        if valid and (name.get() not in categories):
+            db.add_category(name.get(), amount.get())
             label = tk.Label(self, text="Category Added", bg="green")
             label.pack(padx=10, pady=10)
             label.after(3000, lambda: label.destroy())
-        elif valid and (name in categories):
+            clear_text(name, amount)
+        elif valid and (name.get() in categories):
             label = tk.Label(self, text="Category Already Exists", bg="red")
             label.pack(padx=10, pady=10)
             label.after(3000, lambda: label.destroy())
@@ -188,11 +189,11 @@ class PageTwo(tk.Frame):
         frame4 = tk.Frame(self)
         frame4.pack()
         B1 = tk.Button(frame4, text="Insert Purchase", pady=7, 
-                       command=lambda: [self.added(clicked.get(), entry1.get(), entry3.get()), drop.destroy(), delete_button.destroy(), spending_button.destroy()])
+                       command=lambda: [self.added(clicked.get(), entry1, entry3), drop.destroy(), delete_button.destroy(), spending_button.destroy()])
         B1.pack()
 
         B2 = tk.Button(frame4, text="Back to Home", pady=7,
-                       command=lambda: [controller.show_frame(StartPage), drop.destroy(), delete_button.destroy(), spending_button.destroy()])
+                       command=lambda: [clear_text(entry1, entry3), controller.show_frame(StartPage), drop.destroy(), delete_button.destroy(), spending_button.destroy()])
         B2.pack()
       
     def dropdown(self, framex):
@@ -238,15 +239,16 @@ class PageTwo(tk.Frame):
             max_amount (str): max_amount the user can spend in that category; converts to int in db
         """ 
         if category in category_names:
-            if self.valid_expense(expense, amount):
-                db.insert_expense(category, expense, amount)
+            if self.valid_expense(expense.get(), amount.get()):
+                db.insert_expense(category, expense.get(), amount.get())
                 label1 = tk.Label(self, text="Expense Added", bg="green")
                 label1.pack(padx=10, pady=10)
                 label1.after(3000, lambda: label1.destroy())
-                if db.budget_maxed(category, amount):
+                if db.budget_maxed(category, amount.get()):
                     label = tk.Label(self, text="You've exceeded the max amount for this category!", bg="green")
                     label.pack(padx=10, pady=10)
                     label.after(3000, lambda: label.destroy())
+                clear_text(expense, amount)
         else:
             label1 = tk.Label(self, text="Please Select a Category", bg="Yellow")
             label1.pack(padx=10, pady=10)
