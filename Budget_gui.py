@@ -188,37 +188,41 @@ class PageTwo(tk.Frame):
         frame4 = tk.Frame(self)
         frame4.pack()
         B1 = tk.Button(frame4, text="Insert Purchase", pady=7, 
-                       command=lambda: self.added(clicked.get(), entry1.get(), entry3.get(), entry1, entry3))
+                       command=lambda: [self.added(clicked.get(), entry1.get(), entry3.get()), drop.destroy(), delete_button.destroy(), spending_button.destroy()])
         B1.pack()
 
-        B2 = tk.Button(frame4, text="Home", pady=7,
-                       command=lambda: [controller.show_frame(StartPage), drop.destroy(), delete_button.destroy(), spending_button()])
+        B2 = tk.Button(frame4, text="Back to Home", pady=7,
+                       command=lambda: [controller.show_frame(StartPage), drop.destroy(), delete_button.destroy(), spending_button.destroy()])
         B2.pack()
       
     def dropdown(self, framex):
         """Populates the Dropdown with most recent categories
         Returns:
-            clicked (str): the category selected
+            framex (Frame): the frame that the dropdown will be populated in
         """
+        global category_names
         category_names = db.get_categories()    #fetch category names from database
-        global clicked
+        global clicked      #global to permit it to be destroyed when functions are carried out after button click
         clicked = tk.StringVar()        # datatype of menu text
         clicked.set("Select A Category")     # initial menu text
+        
         # Create Dropdown menu
-        global drop
+        global drop  # global to permit it to be destroyed when functions are carried out after button click
         drop = tk.OptionMenu(framex, clicked, 'Select A Category...', *category_names)
         drop.pack(pady=5)
-        global delete_button
+        global delete_button    #global to permit it to be destroyed when functions are carried out after button click
         delete_button = tk.Button(framex, text="Delete Category", pady=7,
                             command=lambda: [self.cat_deleted(clicked.get()), db.del_category(clicked.get())])
         delete_button.pack()
-        global spending_button
+        global spending_button      #global to permit it to be destroyed when functions are carried out after button click
         spending_button = tk.Button(framex, text="See How Much You've Spent", pady=7,
                             command=lambda: self.show_cat_status(clicked.get()))
         spending_button.pack()
                 
     def show_cat_status(self, category):
         """Displays the how much has been spent of the maximum spend out of the maximum spend
+        Parameters:
+            category (Str): category who's total will be compared to the max amount
         """
         print(category)
         cat_spend = db.get_cat_spend(category)
@@ -229,28 +233,36 @@ class PageTwo(tk.Frame):
     def added(self, category, expense, amount):
         """Adds expense to category expense table. Verifies that the category has been added to user for 5 seconds.
         Parameters:
-            clear_expense (): 
-            clear_amount ():
-            name (String): name of the category
-            max_amount (int): max_amount the user can spend in that category
-        """
-                 
-        if self.valid_expense(expense, amount):
-            db.insert_expense(category, expense, amount)
-            label1 = tk.Label(self, text="Expense Added", bg="green")
+            category (str)category expense will be added to
+            name (str): name of the category
+            max_amount (str): max_amount the user can spend in that category; converts to int in db
+        """ 
+        if category in category_names:
+            if self.valid_expense(expense, amount):
+                db.insert_expense(category, expense, amount)
+                label1 = tk.Label(self, text="Expense Added", bg="green")
+                label1.pack(padx=10, pady=10)
+                label1.after(3000, lambda: label1.destroy())
+                if db.budget_maxed(category, amount):
+                    label = tk.Label(self, text="You've exceeded the max amount for this category!", bg="green")
+                    label.pack(padx=10, pady=10)
+                    label.after(3000, lambda: label.destroy())
+        else:
+            label1 = tk.Label(self, text="Please Select a Category", bg="Yellow")
             label1.pack(padx=10, pady=10)
-            label1.after(3000, 
-                         lambda: [label1.destroy(), drop.destroy(), delete_button.destroy(), spending_button()])
-            if db.budget_maxed(category, amount):
-                label = tk.Label(self, text="You've exceeded the max amount for this category!", bg="green")
-                label.pack(padx=10, pady=10)
-                label.after(3000, lambda: label.destroy())
+            label1.after(3000, lambda: label1.destroy())
                   
     def valid_expense(self, expense, amount):
         """This method verifies that the name of the category is a valid string and the amount is a valid number
+        Parameters:
+            expense (str):expense name to be checked for validity - if it isn't empty  
+            amount (str): expense cost to be checked for validity - if it is a positive number (inc. 0)
+        Exception:
+            Value Error: is thrown when 'amount' is a string attempted to be converted to int and float during 
+                        validty check
         """
         try:
-            if (expense == '' or expense.isalpha()) == False or (int(amount) < 0 or float(amount) < 0):
+            if (expense == '' or expense.isalpha() == False) or (int(amount) < 0 or float(amount) < 0):
                 label = tk.Label(self, text="Invalid entry", bg="Red")
                 label.pack(padx=10, pady=10)
                 label.after(3000, lambda: label.destroy())
@@ -263,13 +275,20 @@ class PageTwo(tk.Frame):
             label.after(3000, lambda: label.destroy())
             return False
         
-    def cat_deleted(self,name):
+    def cat_deleted(self, category = None):
         """Displays that a category has been deleted to user for 5 seconds
+        Parameters:
+            category (Str): name of category being deleted
         """
-        label = tk.Label(self, text="Category: %s Deleted" %name, bg="yellow")
-        label.pack(padx=10, pady=10)
-        label.after(3000, 
-                    lambda: [label.destroy(), drop.destroy(), delete_button.destroy(), spending_button.destroy()])
+        if category is not None:
+            label = tk.Label(self, text="Category %s Deleted" %category, bg="yellow")
+            label.pack(padx=10, pady=10)
+            label.after(3000, 
+                        lambda: [label.destroy(), drop.destroy(), delete_button.destroy(), spending_button.destroy()])
+        else: 
+            label = tk.Label(self, text="Please Choose a Category", bg="yellow")
+            label.pack(padx=10, pady=10)
+            label.after(3000, lambda: label.destroy())
 
 def clear_text(text1, text2):
         text1.delete(0, tk.END)
