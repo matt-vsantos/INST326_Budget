@@ -62,18 +62,33 @@ def del_category(name):
     conn.commit()
     conn.close()
 
+def insert_expense(category, name, expense):
+    conn = sqlite3.connect('budget_tracker.db')
+    cursor = conn.cursor()
+    with conn:
+        db_tuple = name, expense
+        gq = '''INSERT INTO %s (expense_name, expense_amount) VALUES (?,?)''' %category
+        cursor.execute(gq, db_tuple)
+    conn.commit()
+    conn.close()
 
-def insert_expense(name):
-    """This method removes categories from the 'categories' table and and drops the table that holds its expenses
-    Side Effects:
-        removes a row from database and table from database that represents the parameter's category
+def budget_maxed(category, amount):
+    """This method checks to see if the expense being added exceeds the category's max amount
     """
     conn = sqlite3.connect('budget_tracker.db')
     cursor = conn.cursor()
-    dq = '''DROP TABLE %s;''' % name
-    conn.commit()
-    drq = '''DELETE FROM categories WHERE category_name = "%s"''' % name
-    cursor.execute(dq)
-    cursor.execute(drq)
-    conn.commit()
+    sq1 = '''SELECT * FROM %s''' %category
+    cat_expenses = cursor.execute(sq1).fetchall()
+    sq2 = '''SELECT max_amount FROM categories WHERE category_name = "%s"''' % category
+    max_amount = cursor.execute(sq2)
+    int(max_amount)
+    
+    cat_total = 0
+    for expense in cat_expenses:
+        cat_total = cat_total + expense[0]
+    
+    if float(amount) + cat_total > max_amount:
+        return True
+    else:
+        return False
     conn.close()

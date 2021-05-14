@@ -124,13 +124,19 @@ class PageOne(tk.Frame):
     def valid_entry(self, name, amount):
         """This method verifies that the name of the category is a valid string and the amount is a valid number
         """
-        if (name == '' or type(name) != str) or (type(amount) != int or type(amount) != float):
+        try:
+            if (name == '' or name.isalpha()) == False or (int(amount) < 0 or float(amount) < 0):
+                label = tk.Label(self, text="Invalid entry", bg="Red")
+                label.pack(padx=10, pady=10)
+                label.after(3000, lambda: label.destroy())
+                return False
+            else:
+                return True
+        except ValueError:
             label = tk.Label(self, text="Invalid entry", bg="Red")
             label.pack(padx=10, pady=10)
             label.after(3000, lambda: label.destroy())
             return False
-        else:
-            return True
         
 class PageTwo(tk.Frame):
     """Allows user to see their categories via a dropdown menu.
@@ -188,24 +194,45 @@ class PageTwo(tk.Frame):
         frame4 = tk.Frame(self)
         frame4.pack()
         B1 = tk.Button(frame4, text="Insert Purchase", pady=7, 
-                       command=lambda: self.added())
+                       command=lambda: self.added(clicked.get(), entry1.get(), entry3.get()))
         B1.pack()
 
         B2 = tk.Button(frame4, text="Home", pady=7,
                        command=lambda: controller.show_frame(StartPage))
         B2.pack()
 
-    def added(self):
-        """Verifies that the category has been added to user for 5 seconds. Adds category to a global dictionary of categories
+    def added(self, category, expense, amount):
+        """Adds expense to category expense table. Verifies that the category has been added to user for 5 seconds.
         Parameters:
             name (String): name of the category
             max_amount (int): max_amount the user can spend in that category
         """
-        label = tk.Label(self, text="Expense Added", bg = "green")
-        label.pack(padx=10, pady=10)
-        label.after(3000, lambda: label.destroy())
-        #ADD INSERTION FUNCTIONALITY - call insert_expense(entry1.get(),entry3.get())
-        
+        if self.valid_expense(expense, amount):
+            db.insert_expense(category, expense, amount)
+            label = tk.Label(self, text="Expense Added", bg="green")
+            label.pack(padx=10, pady=10)
+            label.after(3000, lambda: label.destroy())
+            if db.budget_maxed(category, amount):
+                label = tk.Label(self, text="You've exceeded the max amount for this category!", bg="green")
+                label.pack(padx=10, pady=10)
+                label.after(3000, lambda: label.destroy())
+                  
+    def valid_expense(self, expense, amount):
+        """This method verifies that the name of the category is a valid string and the amount is a valid number
+        """
+        try:
+            if (expense == '' or expense.isalpha()) == False or (int(amount) < 0 or float(amount) < 0):
+                label = tk.Label(self, text="Invalid entry", bg="Red")
+                label.pack(padx=10, pady=10)
+                label.after(3000, lambda: label.destroy())
+                return False
+            else:
+                return True
+        except ValueError:
+            label = tk.Label(self, text="Invalid entry, Try Again", bg="Red")
+            label.pack(padx=10, pady=10)
+            label.after(3000, lambda: label.destroy())
+            return False
         
     def cat_deleted(self,name):
         """Displays that a category has been added to user for 5 seconds
