@@ -72,23 +72,37 @@ def insert_expense(category, name, expense):
     conn.commit()
     conn.close()
 
-def budget_maxed(category, amount):
-    """This method checks to see if the expense being added exceeds the category's max amount
+def get_cat_spend(category):
+    """This method returns the total amount that has been spent in the category and the category's max amount
+    Return:
+        tuple: the current amount spent
     """
     conn = sqlite3.connect('budget_tracker.db')
     cursor = conn.cursor()
-    sq1 = '''SELECT * FROM %s''' %category
+    sq1 = '''SELECT expense_amount FROM %s''' % category
     cat_expenses = cursor.execute(sq1).fetchall()
     sq2 = '''SELECT max_amount FROM categories WHERE category_name = "%s"''' % category
-    max_amount = cursor.execute(sq2)
-    int(max_amount)
-    
-    cat_total = 0
+    max_amount_obj = cursor.execute(sq2)
+    max_amount = max_amount_obj.fetchone()[0]
+
+    cat_spend = 0
     for expense in cat_expenses:
-        cat_total = cat_total + expense[0]
+        cat_spend = cat_spend + expense[0]
     
-    if float(amount) + cat_total > max_amount:
+    conn.close()
+    return cat_spend, max_amount   
+        
+def budget_maxed(category, amount):
+    """This method checks to see if the expense being added exceeds the category's max amount
+    Returns:
+        tuple: the max_amount for the category, how much has been spent
+    """
+    cat_spend = get_cat_spend(category)
+    famount = float(amount)
+    
+    if famount + cat_spend[0] > cat_spend[1]:
         return True
     else:
         return False
-    conn.close()
+
+    
