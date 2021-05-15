@@ -220,7 +220,7 @@ class PageTwo(tk.Frame):
         clicked = tk.StringVar()        # datatype of menu text
         clicked.set("Select A Category")     # initial menu text
 
-        # Create Dropdown menu
+        # Creates Dropdown menu
         global drop  # global to permit it to be destroyed when functions are carried out after button click
         drop = tk.OptionMenu(
             framex, clicked, '',*category_names)
