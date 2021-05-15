@@ -24,7 +24,7 @@ def get_categories():
     # following line and loop gets categories from the database and puts them in a list
     category_names = list()
     for tup in sq_names:
-        category_names.append(tup[0])
+        category_names.append(tup[0].lower())
 
     return category_names
 
