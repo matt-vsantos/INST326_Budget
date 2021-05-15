@@ -85,7 +85,7 @@ class PageOne(tk.Frame):
         frame2 = tk.Frame(self)
         frame2.pack()
 
-        label = tk.Label(frame2, text="Category Maximum")
+        label = tk.Label(frame2, text="Spending Limit")
         label.pack(side=LEFT, padx=10, pady=10)
 
         entry2 = tk.Entry(frame2)
@@ -98,7 +98,7 @@ class PageOne(tk.Frame):
                            command=lambda: self.cat_added(entry1, entry2))
         submit.pack()
         
-        button2 = tk.Button(self, text="Edit your Categories", pady=7,
+        button2 = tk.Button(self, text="View and Edit your Categories", pady=7,
                             command=lambda: controller.show_frame(PageTwo))
         button2.pack()
         
@@ -199,7 +199,7 @@ class PageTwo(tk.Frame):
         #BUTTONS###
         frame4 = tk.Frame(self)
         frame4.pack()
-        B1 = tk.Button(frame4, text="Insert Purchase", pady=7,
+        B1 = tk.Button(frame4, text="Insert Purchase/ Expense", pady=7,
                        command=lambda: [self.added(clicked.get(), entry1, entry3), drop.destroy(), delete_button.destroy(), spending_button.destroy()])
         B1.pack()
         B1 = tk.Button(frame4, text="Edit Category Expenses", pady=7,
@@ -223,13 +223,13 @@ class PageTwo(tk.Frame):
         # Create Dropdown menu
         global drop  # global to permit it to be destroyed when functions are carried out after button click
         drop = tk.OptionMenu(
-            framex, clicked, 'Select A Category...', *category_names)
+            framex, clicked, '',*category_names)
         drop.pack(pady=5)
         
         # global to permit it to be destroyed when functions are carried out after button click
         global delete_button
         delete_button = tk.Button(framex, text="Delete Category", pady=7,
-                                  command=lambda: [self.cat_deleted(clicked.get()), db.del_category(clicked.get())])
+                                  command=lambda: self.cat_deleted(clicked.get()))
         delete_button.pack()
         
         # global to permit it to be destroyed when functions are carried out after button click
@@ -243,7 +243,6 @@ class PageTwo(tk.Frame):
         Parameters:
             category (Str): category who's total will be compared to the max amount
         """
-        print(category)
         cat_spend = db.get_cat_spend(category)
         label = tk.Label(self, text=('You have spent ${} of ${}'.format(cat_spend[0], cat_spend[1])), bg="Yellow")
         label.pack(padx=10, pady=10)
@@ -302,7 +301,7 @@ class PageTwo(tk.Frame):
         Parameters:
             category (Str): name of category being deleted
         """
-        if category is not None:            #if no category was selected from dropdown
+        if category not in db.get_categories():            #if no category was selected from dropdown
             label = tk.Label(self, text="Category %s Deleted" %
                              category, bg="yellow")
             label.pack(padx=10, pady=10)
@@ -360,7 +359,7 @@ class PageThree(tk.Frame):
         cat_drop.pack(pady=5)
         
         global select_button
-        select_button = tk.Button(frame, text="Select this category", pady=7,
+        select_button = tk.Button(frame, text="Select This Category", pady=7,
                                   command=lambda: self.exp_dropdown(frame, category_clicked.get()))
         select_button.pack()
     
