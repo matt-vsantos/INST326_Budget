@@ -105,4 +105,36 @@ def budget_maxed(category, amount):
     else:
         return False
 
+def get_expenses(category):
+    """This method returns a list of expensee from a specified category
+    Parameters:
+        category (str): the category whose expenses are being fetched
+    """
+    conn = sqlite3.connect('budget_tracker.db')
+    cursor = conn.cursor()
+    sq1 = '''SELECT expenseid, expense_name, expense_amount FROM %s''' % category
+    expenses = cursor.execute(sq1).fetchall()
+    formatted_expenses = list()
+    for each in expenses:
+        text = "{}.  {}, for ${}".format(each[0], each[1], each[2])
+        formatted_expenses.append(text)
+        
+    return formatted_expenses
+
+def delete_expense (category, expense_id):
+    """This method deletes expenses for a category's table 
+    Parameters:
+        category (str): the category to be deleted
+        expense_id (str): the expense to be deleted
+    Side Effects: 
+        deletes the row of 'expense_id' from 'category table
+    """
+    conn = sqlite3.connect('budget_tracker.db')
+    cursor = conn.cursor()
+    drq = '''DELETE FROM %s WHERE expenseid = (?)''' % category
+    cursor.execute(drq, expense_id)
+    conn.commit()
+    conn.close()
+    
+
     
